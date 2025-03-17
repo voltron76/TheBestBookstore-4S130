@@ -1,0 +1,46 @@
+﻿@model TheBestBookstore.Models.Category
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1 style="text-align: center; color: #333; font-weight: bold;">Edit</h1>
+<h4 style="text-align: center; color: #007bff;">Edit the Category</h4>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div style="background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+            <form asp-action="Edit" asp-route-id="@Model.Id">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-group">
+                    <label asp-for="Name" class="control-label font-weight-bold"></label>
+                    <input asp-for="Name" class="form-control" style="padding: 10px; border-radius: 5px; font-size: 16px;" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-group">
+                    <label asp-for="Description" class="control-label font-weight-bold"></label>
+                    <textarea asp-for="Description" class="form-control" style="padding: 10px; border-radius: 5px; font-size: 16px;"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <br />
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-success" style="width: 100%; padding: 12px; font-size: 18px; border-radius: 5px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-3">
+    <a asp-action="Index" style="color: #007bff; text-decoration: none; font-size: 16px;">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+

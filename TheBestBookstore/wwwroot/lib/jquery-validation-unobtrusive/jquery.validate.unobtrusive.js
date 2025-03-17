@@ -151,7 +151,6 @@
                     rules: {},
                     success: function () {
                         onSuccess.apply(form, arguments);
-                        execInContext("success", arguments);
                     }
                 },
                 attachValidation: function () {

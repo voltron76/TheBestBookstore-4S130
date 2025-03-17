@@ -1,0 +1,163 @@
+@model TheBestBookstore.Models.Book
+
+@{
+    ViewData["Title"] = "Book Details";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/default-book.jpg" : Model.ImageUrl)" 
+                             class="img-fluid rounded-start" alt="@Model.Title" id="bookImage">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <form id="editBookForm" class="needs-validation">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@Model.Id" />
+                                <input type="hidden" name="DateAdded" value="@Model.DateAdded.ToString("yyyy-MM-dd")" />
+                                <input type="hidden" name="ISBN" value="@Model.ISBN" />
+                                
+                                <div class="form-group mb-3">
+                                    <label for="Title">Title</label>
+                                    <input type="text" class="form-control" id="Title" name="Title" value="@Model.Title" required>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="Author">Author</label>
+                                    <input type="text" class="form-control" id="Author" name="Author" value="@Model.Author" required>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="Description">Description</label>
+                                    <textarea class="form-control" id="Description" name="Description" rows="3" required>@Model.Description</textarea>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    <label for="CategoryId">Category</label>
+                                    <select class="form-select" id="CategoryId" name="CategoryId" required>
+                                        @foreach (var item in ViewBag.Categories)
+                                        {
+                                            <option value="@item.Value" selected="@(item.Value == Model.CategoryId.ToString())">
+                                                @item.Text
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="Price">Price ($)</label>
+                                        <input type="number" class="form-control" id="Price" name="Price" value="@Model.Price" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Pages">Pages</label>
+                                        <input type="number" class="form-control" id="Pages" name="Pages" value="@Model.Pages" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="IsBestSeller" name="IsBestSeller" @(Model.IsBestSeller ? "checked" : "")>
+                                    <label class="form-check-label" for="IsBestSeller">Best Seller</label>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="btn btn-danger" id="deleteBookBtn">Delete Book</button>
+                                        <button type="button" class="btn btn-success" id="addToCartBtn">Add to Cart</button>
+                                    </div>
+                                    <a href="@Url.Action("Index", "Books")" class="btn btn-secondary">Back to List</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#editBookForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var formData = $(this).serializeArray();
+                var data = {};
+                
+                $(formData).each(function(index, obj){
+                    data[obj.name] = obj.value;
+                });
+                
+                data.IsBestSeller = $('#IsBestSeller').is(':checked');
+                
+                $.ajax({
+                    url: '@Url.Action("Edit", "Books", new { id = Model.Id })',
+                    type: 'POST',
+                    data: data,
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Book updated successfully!');
+                            window.location.href = '@Url.Action("Index", "Books")';
+                        } else {
+                            alert('Error updating book: ' + response.message);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr.responseText);
+                        alert('Error updating book. Please try again.');
+                    }
+                });
+            });
+
+            $('#addToCartBtn').click(function() {
+                $.ajax({
+                    url: '@Url.Action("Add", "Cart")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        bookId: @Model.Id,
+                        quantity: 1
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Book added to cart successfully!');
+                            window.location.href = '@Url.Action("Index", "Cart")';
+                        } else {
+                            alert(response.message || 'Error adding book to cart.');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Add to cart error:', xhr.responseText);
+                        alert('Error adding book to cart. Please try again.');
+                    }
+                });
+            });
+
+            $('#deleteBookBtn').click(function() {
+                if (confirm('Are you sure you want to delete this book?')) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Books", new { id = Model.Id })',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function() {
+                            alert('Book deleted successfully!');
+                            window.location.href = '@Url.Action("Index", "Books")';
+                        },
+                        error: function(xhr) {
+                            console.error('Delete error:', xhr.responseText);
+                            alert('Error deleting book. Please try again.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
